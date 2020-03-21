@@ -4,7 +4,7 @@
  * Plugin Name: Map Posts Free
  * Plugin URI: https://integratedproductivitytools.com/products/map-posts-free
  * Description: Configure and insert a map without leaving the editor. Save location as part of post metadata.
- * Version: 1.1
+ * Version: 1.2.2
  * Author: Peter Schwarz
  * Author URI: https://integratedproductivitytools.com/about-us/
  * License: GPLv2 or later
@@ -47,6 +47,11 @@ class IPTMP_Map_Free extends IPTMP_Map_Posts {
 
 	function register_free() {
 
+	}
+	
+	//Runs additional actions upon activation specific to pro version
+	function activate_version_specific() {
+		//Nothing in this version
 	}
 
 	//Defines the content of the [postmap] shortcode
@@ -365,6 +370,7 @@ THEMAPCODE;
 			'Humanitarian OpenStreetMap': humanMap,
 			'B&W OpenStreetMap': standardbwMap,
 			'B&W High Contrast': stamentonerMap,
+			'Natural Terrain': stamenterrainMap,
 			'Artistic Map': stamencolorMap
 		};
 

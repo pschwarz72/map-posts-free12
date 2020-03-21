@@ -10,22 +10,32 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' )) {
 $iptmp_uninstall_chk_role = iptmp_uninstall_chk_role();
 
 if ( is_user_logged_in() && $iptmp_uninstall_chk_role ) {
+	
+	//Checks if Map Posts Pro also installed
+	$iptmp_map_free_folder = __FILE__;
+	$iptmp_map_pro_folder = str_replace('map-posts-free','map-posts-pro',$iptmp_map_free_folder);
+	//Replaces backslashes with forwardslashes which is compatible with both Windows and Linux
+	$iptmp_map_pro_folder_slashed = str_replace('\\','/',$iptmp_map_pro_folder);
+	$iptmp_map_pro_exists = file_exists($iptmp_map_pro_folder);
 
-	//Deletes plugin options
-	delete_option('iptmp_defaults');
+	//Only delete database items if Pro version is not installed
+	if ($iptmp_map_pro_exists == false) {
+	
+		//Deletes plugin options
+		delete_option('iptmp_defaults');
 
-	//Deletes all post metadata added by plugin
-	global $wpdb;
-	$iptmp_uninstall_post_meta = $wpdb-> prefix.'postmeta';
-	$iptmp_uninstall_meta_value = 'iptmp_post_config';
+		//Deletes all post metadata added by plugin
+		global $wpdb;
+		$iptmp_uninstall_post_meta = $wpdb-> prefix.'postmeta';
+		$iptmp_uninstall_meta_value = 'iptmp_post_config';
 
-	$iptmp_uninstall_meta_delete = $wpdb -> prepare (
-		"DELETE FROM $iptmp_uninstall_post_meta"." WHERE meta_key = %s",
-		$iptmp_uninstall_meta_value
-	);
+		$iptmp_uninstall_meta_delete = $wpdb -> prepare (
+			"DELETE FROM $iptmp_uninstall_post_meta"." WHERE meta_key = %s",
+			$iptmp_uninstall_meta_value
+		);
 
-	$wpdb->query($iptmp_uninstall_meta_delete);
-
+		$wpdb->query($iptmp_uninstall_meta_delete);
+	}
 
 }
 

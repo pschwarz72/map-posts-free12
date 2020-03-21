@@ -16,11 +16,17 @@ class IPTMP_Map_Posts {
 		add_action('init', array($this,'insert_map_shortcode_init'));
 
 		//Hooks js and css that needs to be enqueued - 1 for admin, 1 for public
-		add_action('admin_enqueue_scripts', array($this,'include_admin_map_js_file'));
+		//add_action('admin_enqueue_scripts', array($this,'include_admin_map_js_file'));
 		add_action('wp_enqueue_scripts', array($this,'include_public_map_js_file'));
+		
+		//Adds enqueueing a preview map to post edit screens
+		add_action( 'admin_enqueue_scripts', array($this,'include_preview_map_js_file' ));
 
 		//Adds map config sanitization to update_meta
 		add_filter('sanitize_post_meta_iptmp_post_config',array($this,'iptmp_sanitize_map_config'));
+		
+		//Run additional activation actions dependent on version
+		$this -> activate_version_specific();
 
 	}
 
@@ -47,7 +53,7 @@ class IPTMP_Map_Posts {
 	private function iptmp_add_default_options() {
 
 		//Defines default values
-		$default_values = array("iptmp_map_address"=>"","iptmp_map_width"=>"75","iptmp_map_height"=>"300","iptmp_map_usermsg"=>"To update location type in an address, click on map or manually enter latitude and longitude; then save the post (Save Draft, Publish or Update).","iptmp_opencage_key"=>"b14ba325907d45e5b55be4471a9f0450","iptmp_map_zoom"=>"0","iptmp_map_lat"=>"0.00","iptmp_map_long"=>"0.00");
+		$default_values = array("iptmp_map_address"=>"","iptmp_map_width"=>"75","iptmp_map_height"=>"300","iptmp_map_usermsg"=>"To update location type in an address, click on map or manually enter latitude and longitude; then save the post (Save Draft, Publish or Update).","iptmp_opencage_key"=>"bd1dc67faed04ed9a0c4005863d9262a","iptmp_map_zoom"=>"0","iptmp_map_lat"=>"0.00","iptmp_map_long"=>"0.00");
 
 		//Adds plugin default options to database if no existing records present
 		if ( false === get_option( 'iptmp_defaults' )) {
@@ -56,11 +62,12 @@ class IPTMP_Map_Posts {
 	}
 
 	//Enqueues map libraries required in admin
+	/*
 	function include_admin_map_js_file() {
-		/*
+		
 		$path_to_css = plugins_url('/css',__FILE__);
 		$path_to_js = plugins_url('/js',__FILE__);
-		*/
+		
 
 		//Defines the path to css and js files for free and pro versions
 		$relative_plugin_path = plugin_basename(__file__);
@@ -78,30 +85,51 @@ class IPTMP_Map_Posts {
 		wp_enqueue_style('iptmp-leaflet-css',$path_to_css.'/leaflet.css');
 		wp_enqueue_script('iptmp-preview-js',$path_to_js.'/iptmp_preview.js');
 	}
+	*/
+	
+	//Enqueues map preview script in editor pages only
+	function include_preview_map_js_file( $hook ) {
+
+		if ( 'post.php' == $hook || 'post-new.php' == $hook ) {
+			$path_to_js = plugins_url('/js',dirname(__FILE__));
+			$path_to_css = plugins_url('/css',dirname(__FILE__));
+			wp_enqueue_script('iptmp-preview-js',$path_to_js.'/iptmp_preview.js');
+			wp_enqueue_script('iptmp-leaflet-js',$path_to_js.'/leaflet.js');
+			wp_enqueue_style('iptmp-leaflet-css',$path_to_css.'/leaflet.css');
+		}
+		
+	}
 
 	//Enqueues map libraries required in front end public website
 	function include_public_map_js_file() {
-		/*
-		$path_to_css = plugins_url('/css',__FILE__);
-		$path_to_js = plugins_url('/js',__FILE__);
-		*/
+		
+		global $post;
 
-		//Defines the path to css and js files for free and pro versions
-		$relative_plugin_path = plugin_basename(__file__);
-		$free_or_pro_pos = stripos($relative_plugin_path,'free',10);
+		//Defines the path to css and js files
+		$path_to_js = plugins_url('/js',dirname(__FILE__));
+		$path_to_css = plugins_url('/css',dirname(__FILE__));
 
-		if ($free_or_pro_pos != false) {
-			$path_to_css = plugins_url().'/map-posts-free/css';
-			$path_to_js = plugins_url().'/map-posts-free/js';
-		} else {
-			$path_to_css = plugins_url().'/map-posts-pro/css';
-			$path_to_js = plugins_url().'/map-posts-pro/js';
-		};
+		//List of all map shortcodes (which all require Leaflet js, css)
+		$iptmp_map_shortcodes = array('postmap','allpostmap');
+		$iptmp_shortcodes_length = count($iptmp_map_shortcodes);
 
-		//Enqueues Leaflet map library js and css
-		wp_enqueue_script('iptmp-leaflet-js',$path_to_js.'/leaflet.js');
-		wp_enqueue_style('iptmp-leaflet-css',$path_to_css.'/leaflet.css');
-
+		//Enqueues Leaflet js, css on any page containing a map shortcode
+		for($x = 0; $x < $iptmp_shortcodes_length; $x++) {
+			if( is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, $iptmp_map_shortcodes[$x]) ) {
+				wp_enqueue_script('iptmp-leaflet-js',$path_to_js.'/leaflet.js');
+				wp_enqueue_style('iptmp-leaflet-css',$path_to_css.'/leaflet.css');
+				break;
+			}
+		}
+		
+		//Enqueues jquery UI if post contains an All Posts Map
+		if( is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'allpostmap') ) {
+			wp_enqueue_script('jquery-ui-core');
+			wp_enqueue_script('jquery-ui-accordion');
+			wp_enqueue_script('jquery-ui-menu');
+			wp_enqueue_script('jquery-ui-selectmenu');
+			wp_enqueue_style('iptmp-jqueryui-css','http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/blitzer/jquery-ui.css',false,"1.9.0",false);
+		}
 	}
 
 
@@ -133,8 +161,11 @@ class IPTMP_Map_Posts {
 
 	//Registers path and id of tinymce plugin js file
 	function iptmp_register_tinymce_plugin($plugin_array) {
-		//$iptmp_plugin_path = plugins_url('/js/iptmp_plugin.js',__FILE__);
-		$iptmp_plugin_path = plugins_url().'/map-posts-pro/js/iptmp_plugin.js';
+
+		//Defines the path to css and js files
+		$path_to_js = plugins_url('/js',dirname(__FILE__));
+		$iptmp_plugin_path = $path_to_js.'/iptmp_plugin.js';
+
 		$plugin_array['iptmp_button'] = $iptmp_plugin_path;
 		return $plugin_array;
 	}

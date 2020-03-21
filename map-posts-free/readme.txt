@@ -5,7 +5,7 @@ Tags: map, geocode, simple map plugin, open street map, insert map wordpress
 Requires at least: 3.9
 Tested up to: 4.9
 Requires PHP: 5.2.4
-Stable tag: 1.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
  
@@ -98,6 +98,16 @@ is clicked, depending on post status). If no data validation errors occur, the v
 database and map configuration updated. It is possible for changes to be only partially saved - if any configuration
 fails, it will revert to its last saved value and a message will be provided to the user. 
 
+= Layer Control =
+
+The public map (but not the preview map used for configuration) includes a layer control that allows map viewers
+to select which base map to use (options include Standard, Humanitarian and Black and White OpenStreetMap;
+Black and White High Contrast, Natural Terrain and Artistic Map (from Stamen)).
+
+There are also some transparent layers than can be overlain the base maps; these include Trails and Topographic
+relief. For the All Posts Map only, all the post locations are collected in a single layer and can be hidden or
+made visible from the control as well.
+
 
 
  
@@ -136,6 +146,8 @@ To install the plugin manually
 4. The shortcode after insertion by clicking the button or manually typing in. To see the map as it appears in the published post, click Preview Changes or View Post. The Preview Map below Define Map also shows the currently saved location but does not use any custom width or height configuration.
 
 5. An example Post Map in a (very short) blog post.
+
+6. Selection of base maps and overlay options.
  
  
 == Changelog ==
@@ -160,4 +172,24 @@ To install the plugin manually
 * Improvement Fix: All Posts Map shows only locations associated with the same post type (except 'page' post type).
 * Improvement Fix: Define map screen has a new appearance.
 * Improvement Fix: Define map screen default user message updated to reflect additional methods for defining location.
+
+= 1.2 =
+
+* New Feature: Layer control that allows selection of different base maps or transparent layers.
+* New Feature: All Post Map markers can be hidden or made visible from the layer control (visible by default).
+* Improvement Fix: File structure re-organized to facilitate compatibility with Map Posts Pro.
+* Improvement Fix: Preview map now uses an external javascript file and parameters are passed via wp_localize_script.
+* Improvement Fix: Class architecture refactored so there is a parent class common to both Free and Pro version and a child class for Free (and Pro).
+* Improvement Fix: File enqueueing separated for admin and public areas.
+* Improvement Fix: All Post Map markers now in the form of a GeoJSON.
+
+= 1.2.1 =
+
+* Improvement Fix: Preview map code only loads in editor screens. This was causing conflicts in Themes customization.
+
+= 1.2.2 =
+
+* Fix: Preview map would fail to load in a newly created post until user saved the post at least once. Added check to enqueue script for post post.php and post-new.php.
+* Improvement Fix: Only load Leaflet.js, Leaflet.css on pages where a map shortcode has actualy been added.
+* Improvement Fix: Checks for presence of Map Posts Pro before deleting database items on uninstall.
  
